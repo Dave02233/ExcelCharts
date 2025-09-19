@@ -14,13 +14,14 @@
     width: 100%;
 
 
-    background-color: #dcdcdc;
+    background-color: #104365;
 
     position: relative;
     z-index: 2;
 
     h1 {
         margin: 0;
+        color: #FFFF;
     }
 
     img {
