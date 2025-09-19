@@ -9,7 +9,7 @@ function App() {
 
   const handleClickMenu = () => {
     setSideBar(prev => !prev)
-  }
+  };
 
   return (
     <main className={styles.MainContainer}>

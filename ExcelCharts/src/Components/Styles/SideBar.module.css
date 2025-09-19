@@ -11,7 +11,11 @@
     justify-content: center;
     align-items: center;
 
-    background-color: rgb(234, 148, 148);
+    background-color: rgba(173, 210, 252, 0.550);
+    --webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
 
     transition: width 0.2s, color 0s;
 
