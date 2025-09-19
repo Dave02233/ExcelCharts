@@ -1,0 +1,55 @@
+.ToggleContainer {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+
+    justify-content: center;
+    align-items: center;
+
+    width: 3.5rem;
+    height: 2rem;
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.StatusLayer {
+    border-radius: 10px;
+    background-color: #b0b0b0;
+
+    grid-area: 1 / 1 / 2 / 2;
+
+    width: 4rem;
+    height: 1.5rem;
+
+    margin: 0 0.75rem;
+
+}
+
+.active {
+    .StatusLayer {
+        background-color: #34C759;
+    }
+    .MovingLayer {
+        transform: translateX(2.25rem);
+    }
+}
+
+.MovingLayer {
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+
+    box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.18);
+
+    -webkit-backdrop-filter: blur(5px) saturate(160%);
+    backdrop-filter: blur(5px) saturate(160%);
+
+    border: 1.5px solid rgba(255, 255, 255, 0.22);
+
+    grid-area: 1 / 1 / 2 / 2;
+    width: 3rem;
+    height: 2rem;
+
+    transition: transform 0.3s ease-in-out;
+}
