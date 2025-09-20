@@ -9,7 +9,7 @@ export const Toggle = React.memo(
         }
 
         return (
-        <div onClick={handleClick} className={`${styles.ToggleContainer} ${state ? styles.active : ""}`}>
+    <div onClick={handleClick} className={`${styles.ToggleContainer} ${state ? styles.active : styles.inactive}`}>
             <div className={styles.StatusLayer}>
                 <p>I</p>
                 <p>O</p>
