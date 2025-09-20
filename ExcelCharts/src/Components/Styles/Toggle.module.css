@@ -20,7 +20,18 @@
 
     grid-area: 1 / 1 / 2 / 2;
 
-    width: 4rem;
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 0.4rem 0 0.6rem;
+
+    color: white;
+
+    font-family: sans-serif;
+
+    width: 3rem;
     height: 1.5rem;
 
     margin: 0 0.75rem;
