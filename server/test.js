@@ -1,61 +1,43 @@
 const WebSocket = require('ws');
 
-// Creare connessione WebSocket
 const ws = new WebSocket('ws://localhost:3001');
 
-// Test di connessione
 ws.on('open', () => {
-    console.log('✅ Connesso al server WebSocket');
+    console.log('Connesso al server WebSocket');
     
-    // Test 1: Messaggio semplice
-    console.log('\n📤 Invio messaggio di test...');
+    console.log('\nInvio messaggio iniziale');
     ws.send('Ciao server!');
     
-    // Test 2: Messaggio con dati CSV simulati dopo 2 secondi
+
     setTimeout(() => {
-        console.log('\n📤 Invio dati CSV simulati...');
-        const csvData = 'Nome,Età,Città\nMario,25,Roma\nLuigi,30,Milano\nPeach,28,Napoli';
-        ws.send(csvData);
-    }, 2000);
-    
-    // Test 3: Messaggio JSON dopo 4 secondi
-    setTimeout(() => {
-        console.log('\n📤 Invio dati JSON...');
-        const jsonData = JSON.stringify({
-            type: 'csv-file',
-            filename: 'test.csv',
-            data: 'Nome,Età,Città\nMario,25,Roma\nLuigi,30,Milano'
-        });
-        ws.send(jsonData);
-    }, 4000);
-    
-    // Chiudere connessione dopo 6 secondi
-    setTimeout(() => {
-        console.log('\n🔌 Chiusura connessione...');
+        console.log('\nChiusura connessione...');
         ws.close();
-    }, 6000);
+    }, 60000);
 });
 
-// Ricevere messaggi dal server
-ws.on('message', (data) => {
-    console.log('📨 Risposta dal server:', data.toString());
-});
+let chunks = [];
+let expectedChunks = null;
 
-// Gestire chiusura connessione
-ws.on('close', () => {
-    console.log('❌ Connessione chiusa');
-    process.exit(0);
-});
+ws.on('message', (msg) => {
+    const data = JSON.parse(msg);
+    console.log('Risposta dal server:', data);
 
-// Gestire errori
-ws.on('error', (error) => {
-    console.error('🚨 Errore WebSocket:', error.message);
-    
-    if (error.code === 'ECONNREFUSED') {
-        console.log('\n💡 Suggerimento: Assicurati che il server sia avviato con "node app.js"');
+    chunks[data.index] = data.data;
+    expectedChunks = data.total;
+
+    if (chunks.filter(Boolean).length === expectedChunks) { //Filter bool elimina gli undefined
+        const fullDataString = chunks.join('');
+        const fullData = JSON.parse(fullDataString);
+        console.log('Dati riformattati:', fullData);
     }
-    
-    process.exit(1);
 });
 
-console.log('🚀 Tentativo di connessione a ws://localhost:3001...');
+ws.on('close', () => {
+    console.log('Connessione chiusa');
+});
+
+ws.on('error', (error) => {
+    console.error('Errore WebSocket:');
+});
+
+console.log('Connessione a ws://localhost:3001');
