@@ -7,7 +7,7 @@ import { ChartJSChart } from './Components/ChartJSChart'
 
 function App() {
 
-  const [sideBar, setSideBar] = useState(false);
+  const [sideBar, setSideBar] = useState(true);
 
   const handleClickMenu = () => {
     setSideBar(prev => !prev)
