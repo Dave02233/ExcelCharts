@@ -12,7 +12,7 @@ ws.on('open', () => {
     setTimeout(() => {
         console.log('\nChiusura connessione...');
         ws.close();
-    }, 60000);
+    }, 60000); //Timeout da vedere, connessione chiusa alla ricezione di tutti i pacchetti
 });
 
 let chunks = [];
