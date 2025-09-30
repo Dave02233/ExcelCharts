@@ -8,31 +8,57 @@ function createWebSocket(server) {
     wss.on('connection', (ws) => {
         console.log('Cliente connesso');
         
-        ws.on('message', (data) => {
-            completeCSVProcessing('../client/data/generated')
-            .then((data) => {
-                console.log(data);
+        const fs = require('fs');
+        const path = require('path');
 
-                const jsonString = JSON.stringify(data);
-                const maxSize = 10 * 1024 * 1024; //Ben 10MB massimo
-                const total = Math.ceil(jsonString.length/maxSize);
+        // Stato temporaneo per i chunk ricevuti
+        const uploadState = {};
 
-                wss.clients.forEach(client => { //Da vedere come gestire le sessioni, per ora lancio i dati a chiunque
-                    if(client.readyState === WebSocket.OPEN) {
-                        for(let i = 0; i < total; i++) {
-                            const sendObj = {
-                                type: 'pieceOfData',
-                                index: i + 1,
-                                total: total,
-                                data: jsonString.slice(i * maxSize, (i + 1) * maxSize)
-                                // Fidati che ha senso 0 * maxSize prende 10MB 1 * maxSize prende i successivi 10MB
-                            }
-                            client.send(JSON.stringify(sendObj));
-                        }
+        ws.on('message', async (message) => {
+            try {
+                const msg = JSON.parse(message);
+                // Ricezione chunk
+                if (msg.type === 'csvChunk') {
+                    /* msg: {
+                        type: 'csvChunk',
+                        fileName: '...',
+                        chunkIndex: 0,
+                        totalChunks: 5,
+                        data: 'base64...'
+                    } */
+                    if (!uploadState[msg.fileName]) {
+                        uploadState[msg.fileName] = { chunks: [], total: msg.totalChunks };
                     }
-                })
-            })
-            .catch(err => console.error(err));
+                    uploadState[msg.fileName].chunks[msg.chunkIndex] = msg.data;
+
+                    // Se tutti i chunk sono arrivati
+                    const received = uploadState[msg.fileName].chunks.filter(Boolean).length;
+                    if (received === uploadState[msg.fileName].total) {
+                        // Ricostruisci file
+                        const tempDir = path.join(__dirname, 'tempCSV_' + Date.now());
+                        fs.mkdirSync(tempDir);
+                        const filePath = path.join(tempDir, msg.fileName);
+                        const fileData = uploadState[msg.fileName].chunks.map(b64 => Buffer.from(b64, 'base64'));
+                        fs.writeFileSync(filePath, Buffer.concat(fileData));
+
+                        // Elabora la cartella
+                        const result = await completeCSVProcessing(tempDir);
+                        const jsonString = JSON.stringify(result);
+                        wss.clients.forEach(client => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(jsonString);
+                            }
+                        });
+
+                        // Pulisci
+                        fs.unlinkSync(filePath);
+                        fs.rmdirSync(tempDir);
+                        delete uploadState[msg.fileName];
+                    }
+                }
+            } catch (err) {
+                console.error('Errore upload CSV:', err);
+            }
         });
         
         ws.on('close', () => {
