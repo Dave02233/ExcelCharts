@@ -136,21 +136,43 @@ export const ReChart = ({precision}) => {
   )
 
   useEffect(() => {
-    const addData = (mainContainer, setMainContainer, refreshContainer) => {
-      const nextIndex = mainContainer.length;
-      if (refreshContainer[nextIndex] !== undefined) {
-        setMainContainer(prev => [...prev, refreshContainer[prev.length]]);
+    // Usa la connessione WebSocket globale (window.wsRef)
+    let ws = window.wsRef && window.wsRef.current ? window.wsRef.current : null;
+    if (!ws) {
+      ws = new window.WebSocket('ws://localhost:3001');
+      window.wsRef = { current: ws };
+    }
+    ws.onmessage = (event) => {
+      try {
+        const received = JSON.parse(event.data);
+        console.log('Dati ricevuti dal backend:', received);
+        // Adatta qui la formattazione dei dati ricevuti
+        let formatted = [];
+        if (Array.isArray(received)) {
+          // Esempio: se i dati sono [{mese: 'Gennaio', uv: ..., pv: ..., amt: ...}, ...]
+          formatted = received.map(item => ({
+            name: item.name || item.mese || '',
+            uv: item.uv ?? item.UV ?? 0,
+            pv: item.pv ?? item.PV ?? 0,
+            amt: item.amt ?? item.AMT ?? 0
+          }));
+        } else if (received.data && Array.isArray(received.data)) {
+          formatted = received.data.map(item => ({
+            name: item.name || item.mese || '',
+            uv: item.uv ?? item.UV ?? 0,
+            pv: item.pv ?? item.PV ?? 0,
+            amt: item.amt ?? item.AMT ?? 0
+          }));
+        }
+        setData(formatted);
+      } catch (e) {
+        console.log('Errore parsing dati backend:', e);
       }
     };
-
-    const refreshData = setInterval(() => {
-      addData(data, setData, startingData);
-    }, 250);
-
     return () => {
-      clearInterval(refreshData);
+      ws.onmessage = null;
     };
-  }, [data]);
+  }, []);
 
   return (
     <div className={styles.chartContainer}>
